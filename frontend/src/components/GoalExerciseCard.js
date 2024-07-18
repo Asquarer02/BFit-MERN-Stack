@@ -93,6 +93,26 @@ const GoalExerciseCard = ({
     setTotalWeightLifted(0);
   };
 
+  const handleWeightChange = (e) => {
+    const value = e.target.value;
+    if (value >= 0) {
+      setWeight(value);
+    } else {
+      alert("Weight cannot be negative.");
+      setWeight("");
+    }
+  };
+
+  const handleRepsChange = (e) => {
+    const value = e.target.value;
+    if (value >= 0) {
+      setReps(value);
+    } else {
+      alert("Reps cannot be negative.");
+      setReps("");
+    }
+  };
+
   const isExerciseCompleted = trackingSets === exercise.sets;
   const isGoalAchieved = totalWeightLifted > parseInt(exercise.weight);
 
@@ -155,14 +175,14 @@ const GoalExerciseCard = ({
           name="trackingWeight"
           label="Enter Weight"
           value={weight}
-          onChange={(e) => setWeight(e.target.value)}
+          onChange={handleWeightChange}
           fullWidth
         />
         <TextField
           name="trackingReps"
           label="Enter Reps"
           value={reps}
-          onChange={(e) => setReps(e.target.value)}
+          onChange={handleRepsChange}
           fullWidth
         />
         {!isExerciseCompleted && (

@@ -67,42 +67,43 @@ const ExerciseLibrary = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [tabIndex, setTabIndex] = useState(0);
 
+  const fetchExercises = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.api-ninjas.com/v1/exercises",
+        {
+          headers: {
+            "X-Api-Key": "fm5P+qr07nI12K1hQjQjrw==wKT0AocQPVu4HVgy",
+          },
+        }
+      );
+      const fetchedExercises = response.data.slice(0, 10); // Get at least 10 exercises
+
+      // Fetch favorite exercises
+      const favoriteResponse = await axios.get(
+        "http://localhost:5000/bfit/favorites"
+      );
+      const favorites = favoriteResponse.data;
+
+      setFavorites(favorites);
+
+      // Filter out favorite exercises
+      const filteredExercises = fetchedExercises.filter(
+        (exercise) => !favorites.some((fav) => fav.name === exercise.name)
+      );
+
+      setExercises(filteredExercises);
+    } catch (error) {
+      console.error("Error fetching exercises or favorites:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchExercises = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.api-ninjas.com/v1/exercises",
-          {
-            headers: {
-              "X-Api-Key": "fm5P+qr07nI12K1hQjQjrw==wKT0AocQPVu4HVgy",
-            },
-          }
-        );
-        setExercises(response.data.slice(0, 10)); // Get at least 10 exercises
-      } catch (error) {
-        console.error("Error fetching exercises:", error);
-      }
-    };
-
-    const fetchFavorites = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/bfit/favorites"
-        );
-        setFavorites(response.data);
-      } catch (error) {
-        console.error("Error fetching favorites:", error);
-      }
-    };
-
     fetchExercises();
-    fetchFavorites();
   }, []);
 
-  const filteredExercises = exercises.filter(
-    (exercise) =>
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !favorites.some((fav) => fav.name === exercise.name)
+  const filteredExercises = exercises.filter((exercise) =>
+    exercise.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddToFavorites = async (exercise) => {
@@ -122,14 +123,11 @@ const ExerciseLibrary = () => {
 
   const handleDeleteFromFavorites = async (id) => {
     try {
-      const exerciseToRemove = favorites.find(
-        (exercise) => exercise._id === id
-      );
       await axios.delete(`http://localhost:5000/bfit/favorites/${id}`);
       setFavorites((prevFavorites) =>
         prevFavorites.filter((exercise) => exercise._id !== id)
       );
-      setExercises((prevExercises) => [...prevExercises, exerciseToRemove]);
+      fetchExercises(); // Call fetchExercises again to refresh the list
     } catch (error) {
       console.error("Error deleting from favorites:", error);
     }
